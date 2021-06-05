@@ -1,21 +1,20 @@
 package com.paxet.arcorehw
 
+import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
-import android.view.MotionEvent
 import android.view.animation.LinearInterpolator
 import com.google.ar.sceneform.FrameTime
-import com.google.ar.sceneform.HitTestResult
 import com.google.ar.sceneform.Node
-import com.google.ar.sceneform.animation.ModelAnimation
 import com.google.ar.sceneform.math.Quaternion
 import com.google.ar.sceneform.math.QuaternionEvaluator
 import com.google.ar.sceneform.math.Vector3
+import com.google.ar.sceneform.math.Vector3Evaluator
 
-class RotatingNode : Node() {
+class AnimatedNode : Node() {
     // We'll use Property Animation to make this node rotate.
 
     private var rotationAnimation: ObjectAnimator? = null
+    private var translationAnimation: ObjectAnimator? = null
     private var degreesPerSecond = 90.0f
 
     private var lastSpeedMultiplier = 1.0f
@@ -71,10 +70,20 @@ class RotatingNode : Node() {
         if (rotationAnimation != null) {
             return
         }
-        rotationAnimation = createAnimator()
+        val animationSet = AnimatorSet()
+
+        rotationAnimation = createRotationAnimator()
         rotationAnimation!!.target = this
         rotationAnimation!!.duration = animationDuration
-        rotationAnimation!!.start()
+
+        translationAnimation = createTranslationAnimator()
+        translationAnimation!!.target = this
+        translationAnimation!!.duration = animationDuration
+
+        animationSet.play(rotationAnimation).with(translationAnimation)
+
+        animationSet.start()
+
     }
 
     private fun stopAnimation() {
@@ -86,7 +95,7 @@ class RotatingNode : Node() {
     }
 
     /** Returns an ObjectAnimator that makes this node rotate.  */
-    private fun createAnimator(): ObjectAnimator {
+    private fun createRotationAnimator(): ObjectAnimator {
         // Node's setLocalRotation method accepts Quaternions as parameters.
         // First, set up orientations that will animate a circle.
         val orientation1 = Quaternion.axisAngle(Vector3(0.0f, 1.0f, 0.0f), 0f)
@@ -99,7 +108,6 @@ class RotatingNode : Node() {
 
         // Next, give it the localRotation property.
         rotationAnimation.setPropertyName("localRotation")
-        rotationAnimation.setPropertyName("translationX")
 
         // Use Sceneform's QuaternionEvaluator.
         rotationAnimation.setEvaluator(QuaternionEvaluator())
@@ -110,7 +118,32 @@ class RotatingNode : Node() {
         rotationAnimation.interpolator = LinearInterpolator()
         rotationAnimation.setAutoCancel(true)
 
-
         return rotationAnimation
+    }
+
+    /** Returns an ObjectAnimator that makes this node rotate.  */
+    private fun createTranslationAnimator(): ObjectAnimator {
+
+        val translationAnimation = ObjectAnimator()
+
+        val vector1 = Vector3(-0.2f, this.localPosition.y, this.localPosition.z)
+        val vector2 = Vector3(this.localPosition.x, this.localPosition.y, 0.2f)
+        val vector3 = Vector3(0.2f, this.localPosition.y, this.localPosition.z)
+        val vector4 = Vector3(this.localPosition.x, this.localPosition.y, -0.2f)
+        val vector5 = Vector3(-0.2f, this.localPosition.y, this.localPosition.z)
+        translationAnimation.setObjectValues(vector1, vector2, vector3, vector4, vector5)
+
+        translationAnimation.setPropertyName("localPosition")
+        translationAnimation.setEvaluator(Vector3Evaluator())
+
+        //  Allow translationAnimation to repeat forever
+        translationAnimation.repeatCount = ObjectAnimator.INFINITE
+        translationAnimation.repeatMode = ObjectAnimator.RESTART
+
+        translationAnimation.interpolator = LinearInterpolator()
+        translationAnimation.setAutoCancel(true)
+
+
+        return translationAnimation
     }
 }

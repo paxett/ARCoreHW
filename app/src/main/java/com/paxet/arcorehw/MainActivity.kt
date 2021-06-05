@@ -11,7 +11,6 @@ import com.google.ar.sceneform.Scene
 import com.google.ar.sceneform.Sceneform
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.ux.ArFragment
-import com.google.ar.sceneform.ux.TransformableNode
 
 
 class MainActivity : AppCompatActivity() {
@@ -74,15 +73,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun addNodeToScene(anchor: Anchor?, model: ModelRenderable, uri: Uri?) {
         val anchorNode = AnchorNode(anchor)
-
-        val rotatingNode = RotatingNode()
+        val rotatingNode = AnimatedNode()
         rotatingNode.renderable = model
-
-        val transformableNode = TransformableNode(arFragment?.transformationSystem)
-
-        rotatingNode.addChild(transformableNode)
         rotatingNode.setParent(anchorNode)
-
         arFragment?.arSceneView?.scene?.addChild(anchorNode)
     }
 
